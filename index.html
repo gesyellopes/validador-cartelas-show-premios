@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Validação de Cartela</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <style>
+      :root { --msg-size: 21px; }
+
+      body {
+        min-height: 100vh;
+        background: #0b0f17;
+        color: #fff;
+      }
+
+      .card-wrap { max-width: 520px; }
+
+      /* Base do círculo */
+      .icon-wrap {
+        width: 120px;
+        height: 120px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,.35);
+        animation: pop-in 520ms cubic-bezier(.2,.9,.2,1) both;
+      }
+
+      .icon-wrap i {
+        font-size: 64px;
+        line-height: 1;
+      }
+
+      /* Estado: sucesso */
+      .is-valid .icon-wrap {
+        background: rgba(25, 135, 84, 0.15);
+        border: 1px solid rgba(25, 135, 84, 0.45);
+        animation: pop-in 520ms cubic-bezier(.2,.9,.2,1) both,
+                   glow 1.6s ease-in-out 520ms infinite;
+      }
+      .is-valid .icon-wrap i {
+        color: #198754;
+        filter: drop-shadow(0 8px 18px rgba(25,135,84,.45));
+      }
+
+      /* Estado: erro */
+      .is-invalid .icon-wrap {
+        background: rgba(220, 53, 69, 0.12);
+        border: 1px solid rgba(220, 53, 69, 0.35);
+        animation: pop-in 520ms cubic-bezier(.2,.9,.2,1) both,
+                   pulse 1.4s ease-in-out 520ms infinite;
+      }
+      .is-invalid .icon-wrap i {
+        color: #dc3545;
+        filter: drop-shadow(0 8px 18px rgba(220,53,69,.35));
+      }
+
+      .msg {
+        font-size: var(--msg-size);
+        margin-top: 18px;
+      }
+
+      /* Loading */
+      .is-loading .icon-wrap {
+        background: rgba(255,255,255,.08);
+        border: 1px solid rgba(255,255,255,.15);
+      }
+      .is-loading .icon-wrap i {
+        color: rgba(255,255,255,.9);
+      }
+
+      @keyframes pop-in {
+        0%   { transform: scale(.4); opacity: 0; }
+        70%  { transform: scale(1.08); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+      @keyframes glow {
+        0%, 100% {
+          box-shadow: 0 0 0 rgba(25,135,84,.2),
+                      0 10px 30px rgba(0,0,0,.35);
+        }
+        50% {
+          box-shadow: 0 0 22px rgba(25,135,84,.65),
+                      0 10px 30px rgba(0,0,0,.35);
+        }
+      }
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50%      { transform: scale(1.06); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .icon-wrap { animation: none !important; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="container min-vh-100 d-flex align-items-center justify-content-center p-3">
+      <div id="app" class="card-wrap text-center is-loading">
+        <div class="banner">
+          <img src="banner.jpeg" alt="" style="width: 100%; border-radius: 20px; margin-bottom: 30px;">
+        </div>
+
+        <div class="icon-wrap mx-auto" aria-hidden="true">
+          <i id="icon" class="bi bi-hourglass-split"></i>
+        </div>
+
+        <p id="msg" class="msg mb-0">Validando a cartela <strong id="ticket">...</strong></p>
+      </div>
+    </main>
+
+    <script>
+      const API_BASE = "https://webhook-v2.showdepremios.cloud"; // se no deploy mudar, troca aqui (ou usa relativo)
+      const appEl = document.getElementById("app");
+      const msgEl = document.getElementById("msg");
+      const ticketEl = document.getElementById("ticket");
+      const iconEl = document.getElementById("icon");
+
+      function getIdFromPath() {
+        // pega o primeiro segmento da URL: /003001 -> "003001"
+        const parts = window.location.pathname.split("/").filter(Boolean);
+        return parts[0] || "";
+      }
+
+      function setState(state) {
+        appEl.classList.remove("is-loading", "is-valid", "is-invalid");
+        appEl.classList.add(state);
+      }
+
+      function renderValid(id) {
+        setState("is-valid");
+        iconEl.className = "bi bi-check-circle-fill";
+        msgEl.innerHTML = `🎉 Sua cartela <strong>${escapeHtml(id)}</strong> foi registrada com sucesso e já está concorrendo!`;
+      }
+
+      function renderInvalid(id) {
+        setState("is-invalid");
+        iconEl.className = "bi bi-x-circle-fill";
+        // mantém a semântica do seu "index" (não validada), só trocando o nº pelo :id
+        msgEl.innerHTML = `A cartela <strong>nº ${escapeHtml(id)}</strong> ainda não consta como registrada. Caso já tenha efetuado a compra, entre em contato com o vendedor para validação.`;
+      }
+
+      function renderError(id, text) {
+        setState("is-invalid");
+        iconEl.className = "bi bi-x-circle-fill";
+        msgEl.innerHTML = `${escapeHtml(text)} <br><small class="opacity-75">Cartela: <strong>${escapeHtml(id || "—")}</strong></small>`;
+      }
+
+      function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, s => ({
+          "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+        }[s]));
+      }
+
+      async function main() {
+        const id = getIdFromPath();
+        ticketEl.textContent = id || "—";
+
+        if (!id) {
+          renderError("", "URL Inválida");
+          return;
+        }
+
+        setState("is-loading");
+        iconEl.className = "bi bi-hourglass-split";
+        msgEl.innerHTML = `Validando a cartela <strong>${escapeHtml(id)}</strong>...`;
+
+        try {
+          const res = await fetch(`${API_BASE}/validate/${encodeURIComponent(id)}`, {
+            method: "GET",
+            headers: { "Accept": "application/json" }
+          });
+
+          const json = await res.json();
+
+          // esperado: { success:true, valid:true/false, ... }
+          if (!json || json.success !== true) {
+            renderError(id, "Resposta inválida do servidor.");
+            return;
+          }
+
+          if (json.valid === true) renderValid(id);
+          else renderInvalid(id);
+
+        } catch (e) {
+          renderError(id, "Erro ao conectar com o servidor.");
+        }
+      }
+
+      main();
+    </script>
+  </body>
+</html>
