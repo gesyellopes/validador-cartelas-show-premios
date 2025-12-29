@@ -124,10 +124,13 @@
       const iconEl = document.getElementById("icon");
 
       function getIdFromPath() {
-        // pega o primeiro segmento da URL: /003001 -> "003001"
         const parts = window.location.pathname.split("/").filter(Boolean);
-        return parts[0] || "";
+        if (!parts[0]) return "";
+
+        const raw = parts[0];       // ex: "AA003001"
+        return raw.length > 2 ? raw.slice(2) : "";
       }
+
 
       function setState(state) {
         appEl.classList.remove("is-loading", "is-valid", "is-invalid");
