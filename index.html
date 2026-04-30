@@ -134,6 +134,14 @@
         return raw;
       }
 
+      function getTicketNumber() {
+        const parts = window.location.pathname.split("/").filter(Boolean);
+        if (!parts[0]) return "";
+
+        const raw = parts[0];       // ex: "AA003001"
+        return raw.length > 2 ? raw.slice(2) : "";
+      }
+
 
       function setState(state) {
         appEl.classList.remove("is-loading", "is-valid", "is-invalid");
@@ -150,13 +158,13 @@
         setState("is-invalid");
         iconEl.className = "bi bi-x-circle-fill";
         // mantém a semântica do seu "index" (não validada), só trocando o nº pelo :id
-        msgEl.innerHTML = `A cartela <strong>nº ${escapeHtml(id)}</strong> ainda não consta como registrada. Caso já tenha efetuado a compra, entre em contato com o vendedor para validação.`;
+        msgEl.innerHTML = `A cartela <strong>nº ${escapeHtml(getTicketNumber(id))}</strong> ainda não consta como registrada. Caso já tenha efetuado a compra, entre em contato com o vendedor para validação.`;
       }
 
       function renderError(id, text) {
         setState("is-invalid");
         iconEl.className = "bi bi-x-circle-fill";
-        msgEl.innerHTML = `${escapeHtml(text)} <br><small class="opacity-75">Cartela: <strong>${escapeHtml(id || "—")}</strong></small>`;
+        msgEl.innerHTML = `${escapeHtml(text)} <br><small class="opacity-75">Cartela: <strong>${escapeHtml(getTicketNumber(id) || "—")}</strong></small>`;
       }
 
       function escapeHtml(str) {
