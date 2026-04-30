@@ -151,7 +151,7 @@
       function renderValid(id) {
         setState("is-valid");
         iconEl.className = "bi bi-check-circle-fill";
-        msgEl.innerHTML = `🎉 Sua cartela <strong>${escapeHtml(id)}</strong> foi registrada com sucesso e já está concorrendo!`;
+        msgEl.innerHTML = `🎉 Sua cartela <strong>${escapeHtml(getTicketNumber(id))}</strong> foi registrada com sucesso e já está concorrendo!`;
       }
 
       function renderInvalid(id) {
