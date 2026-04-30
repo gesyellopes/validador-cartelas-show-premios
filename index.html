@@ -104,9 +104,11 @@
   <body>
     <main class="container min-vh-100 d-flex align-items-center justify-content-center p-3">
       <div id="app" class="card-wrap text-center is-loading">
+        <!--
         <div class="banner">
           <img src="banner.jpeg" alt="" style="width: 100%; border-radius: 20px; margin-bottom: 30px;">
         </div>
+        -->
 
         <div class="icon-wrap mx-auto" aria-hidden="true">
           <i id="icon" class="bi bi-hourglass-split"></i>
@@ -117,7 +119,7 @@
     </main>
 
     <script>
-      const API_BASE = "https://webhook-v2.showdepremios.cloud"; // se no deploy mudar, troca aqui (ou usa relativo)
+      const API_BASE = "https://api-v3.showdepremios.cloud/tickets"; // se no deploy mudar, troca aqui (ou usa relativo)
       const appEl = document.getElementById("app");
       const msgEl = document.getElementById("msg");
       const ticketEl = document.getElementById("ticket");
